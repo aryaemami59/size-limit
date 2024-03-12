@@ -1,6 +1,5 @@
 import bytes from 'bytes-iec'
 import { globby } from 'globby'
-import _jiti from 'jiti'
 import { lilconfig } from 'lilconfig'
 import { createRequire } from 'node:module'
 import { dirname, isAbsolute, join, relative } from 'node:path'
@@ -102,10 +101,12 @@ const dynamicImport = async filePath => (await import(filePath)).default
  * without pre-compilation.
  *
  * @param {string} filePath - The path to the TypeScript file to be loaded.
- * @returns {any} The module exports from the loaded TypeScript file.
+ * @returns {Promise<any>} The module exports from the loaded TypeScript file.
  */
-const tsLoader = filePath => {
-  const jiti = _jiti(__filename, { interopDefault: true })
+const tsLoader = async filePath => {
+  const jiti = (await import('jiti')).default(__filename, {
+    interopDefault: true
+  })
 
   return jiti(filePath)
 }
