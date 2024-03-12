@@ -13,11 +13,11 @@ afterEach(async () => {
   await rm(join(__dirname, '..', '..', '.cache'))
 })
 
-it('calculates running time', async () => {
+it('calculates running time', { timeout: 15_000 }, async () => {
   let runTime = await getRunningTime(EXAMPLE)
   expect(runTime).toBeGreaterThan(0.009)
   expect(runTime).toBeLessThan(0.5)
-}, 15_000)
+})
 
 it('uses cache', async () => {
   process.env.SIZE_LIMIT_FAKE_TIME = 1
