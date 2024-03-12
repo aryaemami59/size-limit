@@ -4,6 +4,7 @@ import { lilconfig } from 'lilconfig'
 import { createRequire } from 'node:module'
 import { dirname, isAbsolute, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import { SizeLimitError } from './size-limit-error.js'
 
 const require = createRequire(import.meta.url)
@@ -104,7 +105,7 @@ const dynamicImport = async filePath => (await import(filePath)).default
  * @returns {Promise<any>} The module exports from the loaded TypeScript file.
  */
 const tsLoader = async filePath => {
-  const jiti = (await import('jiti')).default(__filename, {
+  let jiti = (await import('jiti')).default(__filename, {
     interopDefault: true
   })
 
@@ -142,12 +143,12 @@ export default async function getConfig(plugins, process, args, pkg) {
   } else {
     let explorer = lilconfig('size-limit', {
       loaders: {
+        '.cjs': dynamicImport,
+        '.cts': tsLoader,
         '.js': dynamicImport,
         '.mjs': dynamicImport,
-        '.cjs': dynamicImport,
-        '.ts': tsLoader,
         '.mts': tsLoader,
-        '.cts': tsLoader
+        '.ts': tsLoader
       },
       searchPlaces: [
         'package.json',
