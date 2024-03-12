@@ -5,7 +5,7 @@
     "bump": "./scripts/bump.js",
     "release": "./scripts/each.js pnpm clean-publish --access public",
     "clean": "rm -Rf packages/*/node_modules/ node_modules/ node-warnings.logs out/ coverage/",
-    "test": "vitest run --coverage && eslint . && sh scripts/max-listeners-check.sh"
+    "test": "vitest --run && eslint . && sh scripts/max-listeners-check.sh"
   },
   "devDependencies": {
     "@logux/eslint-config": "^53.0.0",
