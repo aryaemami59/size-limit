@@ -11,8 +11,6 @@ const require = createRequire(import.meta.url)
 
 const __filename = fileURLToPath(import.meta.url)
 
-const jiti = _jiti(__filename, { interopDefault: true })
-
 let OPTIONS = {
   brotli: 'file',
   compareWith: 'webpack',
@@ -106,7 +104,11 @@ const dynamicImport = async filePath => (await import(filePath)).default
  * @param {string} filePath - The path to the TypeScript file to be loaded.
  * @returns {any} The module exports from the loaded TypeScript file.
  */
-const tsLoader = filePath => jiti(filePath)
+const tsLoader = filePath => {
+  const jiti = _jiti(__filename, { interopDefault: true })
+
+  return jiti(filePath)
+}
 
 export default async function getConfig(plugins, process, args, pkg) {
   let config = {
