@@ -2,7 +2,7 @@ import filePkg from '@size-limit/file'
 import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { rm, SizeLimitError } from 'size-limit'
+import { SizeLimitError, rm } from 'size-limit'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import webpackPkg from '../index.js'
@@ -106,7 +106,12 @@ describe('supports custom webpack config defined as function', () => {
       checks: [{ config: fixture('esm/webpack-func.config.js') }],
       configPath: ROOT_CONFIG
     }
-    await run(config)
+    try {
+      await run(config)
+    } catch (err) {
+      console.error(err)
+      expect.fail()
+    }
     expect(config.checks[0].size).toBeCloseTo(1295, -2)
   })
 })
