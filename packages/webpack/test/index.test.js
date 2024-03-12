@@ -2,7 +2,7 @@ import filePkg from '@size-limit/file'
 import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { SizeLimitError, rm } from 'size-limit'
+import { rm, SizeLimitError } from 'size-limit'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import webpackPkg from '../index.js'
