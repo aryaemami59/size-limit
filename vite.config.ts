@@ -2,9 +2,8 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    // pool: 'forks',
     watch: false,
-    fileParallelism: false,
+    fileParallelism: !process.env.CI,
     coverage: {
       provider: 'v8',
       thresholds: {
