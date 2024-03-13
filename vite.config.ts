@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     watch: false,
-    retry: !process.env.CI ? 0 : 1,
+    retry: process.env.CI ? 1 : 0,
     fileParallelism: !process.env.CI,
     coverage: {
       provider: 'v8',
