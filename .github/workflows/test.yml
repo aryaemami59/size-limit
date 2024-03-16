@@ -3,7 +3,7 @@ on: [push]
 jobs:
   full:
     name: Node.js Latest Full
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
