@@ -23,13 +23,13 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run tests
         run: pnpm test
+
   short:
-    runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version:
-          - 20
-          - 18
+        node-version: [18.x, 20.x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     name: Node.js ${{ matrix.node-version }} Quick
     steps:
       - name: Checkout the repository
