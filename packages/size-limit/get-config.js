@@ -87,14 +87,40 @@ function toName(files, cwd) {
 const dynamicImport = async filePath =>
   (await import(pathToFileURL(filePath).href)).default
 
+/**
+ * @param {string} filePath
+ */
 const tsLoader = async filePath => {
-  let jiti = (await import('jiti')).createJiti(fileURLToPath(import.meta.url), {
-    interopDefault: false
-  })
-
-  let config = await jiti.import(filePath, { default: true })
-
-  return config
+  let { tsImport } = await import('tsx/esm/api')
+  try {
+    let loaded = await tsImport(pathToFileURL(filePath).href, {
+      parentURL: import.meta.url,
+      tsconfig: false
+    })
+    return loaded?.default ?? loaded
+  } catch (error) {
+    if (
+      error instanceof SyntaxError &&
+      error.message.includes('Cannot use import statement outside a module')
+    ) {
+      let { require: tsxRequire } = await import('tsx/cjs/api')
+      let loaded = tsxRequire(
+        filePath,
+        typeof __filename === 'undefined'
+          ? fileURLToPath(import.meta.url)
+          : __filename
+      )
+      return loaded?.default ?? loaded
+    }
+    throw error
+  }
+  // let jiti = (await import('jiti')).default(fileURLToPath(import.meta.url), {
+  //   esmResolve: true,
+  //   interopDefault: true
+  // })
+  // return jiti(filePath)?.default ?? jiti(filePath)
+  // return jiti(filePath)
+}
 }
 
 export default async function getConfig(plugins, process, args, pkg) {
