@@ -30,7 +30,8 @@
     "jiti": "^1.21.0",
     "lilconfig": "^3.1.1",
     "nanospinner": "^1.1.0",
-    "picocolors": "^1.0.1"
+    "picocolors": "^1.0.1",
+    "tsx": "^4.11.0"
   },
   "devDependencies": {
     "@size-limit/esbuild": "workspace:*",
