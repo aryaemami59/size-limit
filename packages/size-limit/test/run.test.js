@@ -1,4 +1,4 @@
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { expect, it, vi } from 'vitest'
 
 import run from '../run'
@@ -45,7 +45,7 @@ function createProcess(cwd, args = []) {
   let process = {
     argv: ['node', 'size-limit', ...args],
     cwd() {
-      if (cwd.includes('/')) {
+      if (cwd.includes(sep)) {
         return cwd
       } else {
         return fixture(...(Array.isArray(cwd) ? cwd : [cwd]))
@@ -116,7 +116,7 @@ it('uses dependencies to detect plugins', async () => {
 })
 
 it('shows error on missed package.json', async () => {
-  expect(await error('/')).toMatchSnapshot()
+  expect(await error(sep)).toMatchSnapshot()
 })
 
 it('shows syntax errors in package.json', async () => {
@@ -126,7 +126,7 @@ it('shows syntax errors in package.json', async () => {
 })
 
 it('shows error in JSON format', async () => {
-  let [process, history] = createProcess('/', ['--json'])
+  let [process, history] = createProcess(sep, ['--json'])
   await run(process)
   expect(history.exitCode).toBe(1)
   expect(history.stderr).toBe('')
