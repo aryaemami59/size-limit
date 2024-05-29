@@ -90,28 +90,51 @@ const dynamicImport = async filePath =>
 /**
  * @param {string} filePath
  */
-const tsLoader = async filePath => {
+const mtsLoader = async filePath => {
   let { tsImport } = await import('tsx/esm/api')
+
+  let loaded = await tsImport(pathToFileURL(filePath).href, {
+    parentURL: import.meta.url,
+    tsconfig: false
+  })
+
+  return loaded?.default ?? loaded
+}
+
+/**
+ * @param {string} filePath
+ */
+const ctsLoader = async filePath => {
+  let { require: tsxRequire } = await import('tsx/cjs/api')
+
+  let loaded = tsxRequire(
+    filePath,
+    typeof __filename === 'undefined'
+      ? fileURLToPath(import.meta.url)
+      : __filename
+  )
+
+  return loaded?.default ?? loaded
+}
+
+/**
+ * @param {string} filePath
+ */
+const tsLoader = async filePath => {
   try {
-    let loaded = await tsImport(pathToFileURL(filePath).href, {
-      parentURL: import.meta.url,
-      tsconfig: false
-    })
+    let loaded = await mtsLoader(filePath)
+
     return loaded?.default ?? loaded
   } catch (error) {
     if (
       error instanceof SyntaxError &&
-      error.message.includes('Cannot use import statement outside a module')
+      (error.message.includes('import') || error.message.includes('export'))
     ) {
-      let { require: tsxRequire } = await import('tsx/cjs/api')
-      let loaded = tsxRequire(
-        filePath,
-        typeof __filename === 'undefined'
-          ? fileURLToPath(import.meta.url)
-          : __filename
-      )
+      let loaded = await ctsLoader(filePath)
+
       return loaded?.default ?? loaded
     }
+    /* c8 ignore next 2 */
     throw error
   }
   // let jiti = (await import('jiti')).default(fileURLToPath(import.meta.url), {
@@ -120,20 +143,6 @@ const tsLoader = async filePath => {
   // })
   // return jiti(filePath)?.default ?? jiti(filePath)
   // return jiti(filePath)
-}
-
-/**
- * @param {string} filePath
- */
-const ctsLoader = async filePath => {
-  let { require: tsxRequire } = await import('tsx/cjs/api')
-  let loaded = tsxRequire(
-    filePath,
-    typeof __filename === 'undefined'
-      ? fileURLToPath(import.meta.url)
-      : __filename
-  )
-  return loaded?.default ?? loaded
 }
 
 export default async function getConfig(plugins, process, args, pkg) {
@@ -171,7 +180,7 @@ export default async function getConfig(plugins, process, args, pkg) {
         '.cts': ctsLoader,
         '.js': dynamicImport,
         '.mjs': dynamicImport,
-        '.mts': tsLoader,
+        '.mts': mtsLoader,
         '.ts': tsLoader
       },
       searchPlaces: [
@@ -246,6 +255,7 @@ export default async function getConfig(plugins, process, args, pkg) {
       let imports = {}
       for (let i in check.import) {
         if (peer.includes(i)) {
+          /* c8 ignore next 2 */
           check.ignore = check.ignore.filter(j => j !== i)
           imports[require.resolve(i, config.cwd)] = check.import[i]
         } else {
