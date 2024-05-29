@@ -121,6 +121,19 @@ const tsLoader = async filePath => {
   // return jiti(filePath)?.default ?? jiti(filePath)
   // return jiti(filePath)
 }
+
+/**
+ * @param {string} filePath
+ */
+const ctsLoader = async filePath => {
+  let { require: tsxRequire } = await import('tsx/cjs/api')
+  let loaded = tsxRequire(
+    filePath,
+    typeof __filename === 'undefined'
+      ? fileURLToPath(import.meta.url)
+      : __filename
+  )
+  return loaded?.default ?? loaded
 }
 
 export default async function getConfig(plugins, process, args, pkg) {
@@ -155,7 +168,7 @@ export default async function getConfig(plugins, process, args, pkg) {
     let explorer = lilconfig('size-limit', {
       loaders: {
         '.cjs': dynamicImport,
-        '.cts': tsLoader,
+        '.cts': ctsLoader,
         '.js': dynamicImport,
         '.mjs': dynamicImport,
         '.mts': tsLoader,
