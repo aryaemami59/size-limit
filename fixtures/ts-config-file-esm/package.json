@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "name": "ts-config-file-esm",
   "devDependencies": {
     "@size-limit/webpack": ">= 0.0.0",
