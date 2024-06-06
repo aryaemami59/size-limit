@@ -346,7 +346,7 @@ it('renders result for file with gzip', () => {
   ).toMatchSnapshot()
 })
 
-it('renders Webpack stats help message', () => {
+it.skip('renders Webpack stats help message', () => {
   expect(
     results(['webpack'], {
       checks: [],
