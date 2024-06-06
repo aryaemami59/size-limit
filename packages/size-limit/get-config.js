@@ -98,7 +98,7 @@ const mtsLoader = async filePath => {
     tsconfig: false
   })
 
-  return loaded?.default ?? loaded
+  return (await loaded?.default) ?? loaded
 }
 
 /**
@@ -124,18 +124,11 @@ const tsLoader = async filePath => {
   try {
     let loaded = await mtsLoader(filePath)
 
-    return loaded?.default ?? loaded
-  } catch (error) {
-    if (
-      error instanceof SyntaxError &&
-      (error.message.includes('import') || error.message.includes('export'))
-    ) {
-      let loaded = await ctsLoader(filePath)
+    return (await loaded?.default) ?? loaded
+  } catch {
+    let loaded = await ctsLoader(filePath)
 
-      return loaded?.default ?? loaded
-    }
-    /* c8 ignore next 2 */
-    throw error
+    return (await loaded?.default) ?? loaded
   }
   // let jiti = (await import('jiti')).default(fileURLToPath(import.meta.url), {
   //   esmResolve: true,
