@@ -5,7 +5,9 @@ export default function parseArgs(plugins, argv) {
   for (let i = 2; i < argv.length; i++) {
     let arg = argv[i]
 
-    if (arg === '--limit') {
+    if (arg === '--config' || arg === '-c') {
+      args.configPath = argv[++i]
+    } else if (arg === '--limit') {
       args.limit = argv[++i]
     } else if (arg === '--debug') {
       args.debug = true

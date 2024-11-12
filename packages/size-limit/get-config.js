@@ -13,6 +13,7 @@ let OPTIONS = {
   brotli: 'file',
   compareWith: 'webpack',
   config: ['webpack', 'esbuild'],
+  configPath: true,
   disableModuleConcatenation: 'webpack',
   entry: 'webpack',
   gzip: 'file',
@@ -101,6 +102,9 @@ export default async function getConfig(plugins, process, args, pkg) {
   let config = {
     cwd: process.cwd()
   }
+  if (args.configPath) {
+    config.configPath = toAbsolute(args.configPath, process.cwd())
+  }
   if (args.why) {
     config.project = pkg.packageJson.name
     config.why = args.why
@@ -126,7 +130,7 @@ export default async function getConfig(plugins, process, args, pkg) {
   if (args.files.length > 0) {
     config.checks = [{ files: args.files }]
   } else {
-    let explorer = lilconfig('size-limit', {
+    let explorer = lilconfig(config?.configPath ?? 'size-limit', {
       loaders: {
         '.cjs': dynamicImport,
         '.cts': tsLoader,
@@ -147,7 +151,9 @@ export default async function getConfig(plugins, process, args, pkg) {
         '.size-limit.cts'
       ]
     })
-    let result = await explorer.search(process.cwd())
+    let result = config?.configPath
+      ? await explorer.load(config.configPath)
+      : await explorer.search(process.cwd())
 
     if (result === null) throw new SizeLimitError('noConfig')
     checkChecks(plugins, result.config)
