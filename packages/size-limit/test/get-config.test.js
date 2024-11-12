@@ -195,6 +195,38 @@ it('normalizes bundle and webpack arguments with --why and ui-reports', async ()
   })
 })
 
+it('--config works', async () => {
+  let args = ['--config', 'size-limit.config.mts']
+
+  expect(await check('config-cli-option', args)).toEqual({
+    checks: [
+      {
+        files: [fixture('config-cli-option', 'index.js')],
+        name: 'index.js',
+        path: 'index.js'
+      }
+    ],
+    configPath: 'size-limit.config.mts',
+    cwd: fixture('config-cli-option')
+  })
+})
+
+it('-c works', async () => {
+  let args = ['-c', 'size-limit.config.mts']
+
+  expect(await check('config-cli-option', args)).toEqual({
+    checks: [
+      {
+        files: [fixture('config-cli-option', 'index.js')],
+        name: 'index.js',
+        path: 'index.js'
+      }
+    ],
+    configPath: 'size-limit.config.mts',
+    cwd: fixture('config-cli-option')
+  })
+})
+
 it('works with .mjs config file', async () => {
   expect(await check('mjs-config-file')).toEqual({
     checks: [
