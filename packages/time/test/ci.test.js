@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { getRunningTime } from '../get-running-time'
 
@@ -16,12 +16,17 @@ vi.mock('../cache', () => ({
   saveCache() {}
 }))
 
+const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 beforeEach(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => true)
   vi.unstubAllEnvs()
 })
 
 afterEach(() => {
+  vi.clearAllMocks()
+})
+
+afterAll(() => {
   vi.restoreAllMocks()
 })
 
@@ -41,10 +46,10 @@ it('prints warning on Circle CI during the error', async () => {
   vi.stubEnv('CI', '1')
 
   expect(await runWithError()).toBe('libX11-xcb.so.1')
-  expect(console.warn).toHaveBeenCalledTimes(1)
+  expect(consoleWarnSpy).toHaveBeenCalledOnce()
 })
 
 it('does not prints warning on non-CI', async () => {
   expect(await runWithError()).toBe('libX11-xcb.so.1')
-  expect(console.warn).not.toHaveBeenCalled()
+  expect(consoleWarnSpy).not.toHaveBeenCalled()
 })
