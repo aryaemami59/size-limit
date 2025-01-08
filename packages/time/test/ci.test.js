@@ -18,7 +18,7 @@ vi.mock('../cache', () => ({
 
 beforeEach(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => true)
-  delete process.env.CI
+  vi.unstubAllEnvs()
 })
 
 afterEach(() => {
@@ -38,7 +38,8 @@ async function runWithError() {
 }
 
 it('prints warning on Circle CI during the error', async () => {
-  process.env.CI = '1'
+  vi.stubEnv('CI', '1')
+
   expect(await runWithError()).toBe('libX11-xcb.so.1')
   expect(console.warn).toHaveBeenCalledTimes(1)
 })
