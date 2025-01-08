@@ -1,11 +1,7 @@
 name: Test
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-permissions:
-  contents: read
+
+on: [push, pull_request, workflow_dispatch]
+
 jobs:
   full:
     name: Node.js Latest Full
