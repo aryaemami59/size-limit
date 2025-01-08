@@ -6,8 +6,13 @@ import { getCache, saveCache } from '../cache'
 
 const CACHE = join(__dirname, '..', '..', '.cache')
 
-beforeAll(() => rm(CACHE, { force: true, recursive: true }))
-afterEach(() => rm(CACHE, { force: true, recursive: true }))
+beforeAll(() => {
+  rm(CACHE, { force: true, recursive: true })
+})
+
+afterEach(() => {
+  rm(CACHE, { force: true, recursive: true })
+})
 
 it('returns false by default', async () => {
   expect(await getCache()).toBe(false)
