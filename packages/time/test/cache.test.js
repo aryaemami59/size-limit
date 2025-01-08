@@ -6,12 +6,12 @@ import { getCache, saveCache } from '../cache'
 
 const CACHE = join(__dirname, '..', '..', '.cache')
 
-beforeAll(() => {
-  rm(CACHE, { force: true, recursive: true })
+beforeAll(async () => {
+  await rm(CACHE, { force: true, recursive: true })
 })
 
-afterEach(() => {
-  rm(CACHE, { force: true, recursive: true })
+afterEach(async () => {
+  await rm(CACHE, { force: true, recursive: true })
 })
 
 it('returns false by default', async () => {
