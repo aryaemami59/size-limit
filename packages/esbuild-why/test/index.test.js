@@ -60,8 +60,7 @@ it('supports open esbuild visualizer on complete', async () => {
     await esbuildWhy.finally(config, config.checks[0])
   }
 
-  expect(open).toHaveBeenCalledTimes(1)
-  expect(open).toHaveBeenCalledWith(
-    expect.stringMatching(/.*\/out\/esbuild-why.html$/)
+  expect(open).toHaveBeenCalledExactlyOnceWith(
+    expect.stringMatching(/^.*(\\|\/)out(\\|\/)esbuild-why\.html$/)
   )
 })

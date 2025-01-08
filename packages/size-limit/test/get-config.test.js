@@ -1,4 +1,4 @@
-import { dirname, join } from 'node:path'
+import * as path from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import calc from '../calc'
@@ -17,7 +17,7 @@ vi.mock('../create-reporter', () => {
 vi.mock('../calc')
 
 function fixture(...files) {
-  return join(__dirname, '..', '..', '..', 'fixtures', ...files)
+  return path.join(__dirname, '..', '..', '..', 'fixtures', ...files)
 }
 
 async function check(cwd, args = []) {
@@ -33,11 +33,11 @@ async function check(cwd, args = []) {
     }
   }
   await run(process)
-  return calc.mock.calls[0][1]
+  return vi.mocked(calc).mock.calls[0][1]
 }
 
 beforeEach(() => {
-  calc.mockReset()
+  vi.mocked(calc).mockReset()
 })
 
 it('creates config by CLI arguments', async () => {
@@ -470,10 +470,12 @@ it('normalizes latency option for time plugin', async () => {
     cwd: fixture(cwd)
   })
 })
-    
+
 it('takes config from CLI config argument', async () => {
   let cwd = 'config-file-from-arg'
-  let configPath = 'src/configs/my-size-limit.config.js'
+  let configPath = path.join(
+    ...'src/configs/my-size-limit.config.js'.split(path.posix.sep)
+  )
   expect(await check(cwd, ['--config', fixture(cwd, configPath)])).toEqual({
     checks: [
       {
@@ -484,7 +486,7 @@ it('takes config from CLI config argument', async () => {
         sizeLimit: 10
       },
       {
-        files: [fixture(cwd, 'src/main.js')],
+        files: [fixture(cwd, 'src', 'main.js')],
         limit: 20,
         name: 'main',
         path: '../main.js',
@@ -492,7 +494,7 @@ it('takes config from CLI config argument', async () => {
       }
     ],
     configPath,
-    cwd: fixture(cwd, dirname(configPath))
+    cwd: fixture(cwd, ...path.dirname(configPath).split(path.posix.sep))
   })
 })
 
