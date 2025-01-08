@@ -1,6 +1,6 @@
 import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 
 import { getCache, saveCache } from '../cache.js'
 import { cleanCache, getRunningTime } from '../get-running-time.js'
@@ -9,7 +9,7 @@ const EXAMPLE = join(__dirname, '../node_modules/nanoid/index.browser.js')
 const CACHE = join(__dirname, '..', '..', '.cache')
 
 afterEach(async () => {
-  delete process.env.SIZE_LIMIT_FAKE_TIME
+  vi.unstubAllEnvs()
   cleanCache()
   await rm(CACHE, { force: true, recursive: true })
 })
@@ -21,7 +21,8 @@ it('calculates running time', async () => {
 })
 
 it('uses cache', async () => {
-  process.env.SIZE_LIMIT_FAKE_TIME = 1
+  vi.stubEnv('SIZE_LIMIT_FAKE_TIME', '1')
+
   expect(await getRunningTime(EXAMPLE)).toBe(1)
 
   let throttling = await getCache()
@@ -30,6 +31,8 @@ it('uses cache', async () => {
 
   cleanCache()
   expect(await getRunningTime(EXAMPLE)).toBe(100)
+
+  vi.unstubAllEnvs()
 })
 
 it('ignores non-JS files', async () => {
@@ -37,7 +40,8 @@ it('ignores non-JS files', async () => {
 })
 
 it('works in parallel', async () => {
-  process.env.SIZE_LIMIT_FAKE_TIME = 1
+  vi.stubEnv('SIZE_LIMIT_FAKE_TIME', '1')
+
   let times = await Promise.all([
     getRunningTime(EXAMPLE),
     getRunningTime(EXAMPLE),
@@ -45,4 +49,6 @@ it('works in parallel', async () => {
     getRunningTime(EXAMPLE)
   ])
   expect(times).toHaveLength(4)
+
+  vi.unstubAllEnvs()
 })
