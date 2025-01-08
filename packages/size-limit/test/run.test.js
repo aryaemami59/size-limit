@@ -1,3 +1,4 @@
+import * as path from 'node:path'
 import { join } from 'node:path'
 import { expect, it, vi } from 'vitest'
 
@@ -74,6 +75,17 @@ function clean(output) {
     .replace(/var\/folders\/(.*)\//g, 'tmp/')
     .replace(/"cwd": "[^"]+"/, '"cwd": "/tmp/"')
     .replace(/"webpackOutput": "[^"]+"/, '"webpackOutput": "/tmp/"')
+    .replace(
+      /"[^"]+(\\\\fixtures[^"]+")/g,
+      (_, group) => `"${group.replaceAll(path.sep.repeat(2), path.posix.sep)}`
+    )
+    .replace(
+      /"[^"]+\\\\Temp([^"]+")/g,
+      (_, group) =>
+        `"/tmp${group
+          .replaceAll(path.sep.repeat(2), path.posix.sep)
+          .replaceAll(path.posix.sep.repeat(2), path.posix.sep)}`
+    )
 }
 
 async function check(cwd, args) {

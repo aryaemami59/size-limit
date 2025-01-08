@@ -1,3 +1,4 @@
+import * as path from 'node:path'
 import { expect, it } from 'vitest'
 
 import createReporter from '../create-reporter'
@@ -18,7 +19,8 @@ function results(types, config, isJSON = false, isSilentMode = false) {
   }
   let reporter = createReporter(process, isJSON, isSilentMode)
   reporter.results(plugins, config)
-  return stdout
+
+  return stdout.replaceAll(path.sep, path.posix.sep)
 }
 
 it('renders results', () => {
