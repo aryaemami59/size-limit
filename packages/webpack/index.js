@@ -59,7 +59,11 @@ export default [
     async before(config) {
       if (config.saveBundle) {
         if (config.cleanDir) {
-          await rm(config.saveBundle, { force: true, recursive: true })
+          await rm(config.saveBundle, {
+            force: true,
+            maxRetries: 3,
+            recursive: true
+          })
         } else {
           let notEmpty = await isDirNotEmpty(config.saveBundle)
           if (notEmpty) {
