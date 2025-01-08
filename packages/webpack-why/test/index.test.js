@@ -35,7 +35,6 @@ afterEach(async () => {
 })
 
 it('supports --why', async () => {
-  vi.spyOn(console, 'log').mockImplementation(() => true)
   let config = {
     checks: [{ files: [fixture('big.js')] }],
     project: 'superProject',

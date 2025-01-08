@@ -4,10 +4,13 @@ import { join } from 'node:path'
 import open from 'open'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import esbuildWhyPkg from '..'
+import esbuildWhyPkg from '../index.js'
 const [esbuild] = esbuildPkg
 
-vi.mock('open')
+const mockedOpen = vi.mocked(open)
+
+vi.mock(import('open'))
+
 const [esbuildWhy] = esbuildWhyPkg
 
 const DIST = join(process.cwd(), 'out')
@@ -22,7 +25,6 @@ afterEach(async () => {
 })
 
 it('supports --why', async () => {
-  vi.spyOn(console, 'log').mockImplementation(() => true)
   let config = {
     checks: [{ files: [fixture('big.js')] }],
     project: 'superProject',
@@ -60,7 +62,7 @@ it('supports open esbuild visualizer on complete', async () => {
     await esbuildWhy.finally(config, config.checks[0])
   }
 
-  expect(open).toHaveBeenCalledExactlyOnceWith(
+  expect(mockedOpen).toHaveBeenCalledExactlyOnceWith(
     expect.stringMatching(/^.*(\\|\/)out(\\|\/)esbuild-why\.html$/)
   )
 })

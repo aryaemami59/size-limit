@@ -1,16 +1,17 @@
 import { SizeLimitError } from 'size-limit'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import { getRunningTime } from '../get-running-time.js'
 import timePkg from '../index.js'
 const [time] = timePkg
 
-vi.mock('../get-running-time')
+const mockedGetRunningTime = vi.mocked(getRunningTime)
 
-beforeEach(() => {
-  getRunningTime.mockReset()
-  getRunningTime.mockImplementation(() => 10)
-})
+vi.mock(import('../get-running-time.js'), async importOriginal => ({
+  ...(await importOriginal()),
+
+  getRunningTime: vi.fn(async () => 10)
+}))
 
 it('has name', () => {
   expect(time.name).toBe('@size-limit/time')
@@ -24,7 +25,7 @@ it('calculates time to download and run', async () => {
     ]
   }
   await time.step80(config, config.checks[0])
-  expect(getRunningTime).toHaveBeenCalledWith('/tmp/a.js')
+  expect(mockedGetRunningTime).toHaveBeenLastCalledWith('/tmp/a.js')
   expect(config).toEqual({
     checks: [
       {
@@ -62,7 +63,7 @@ it('is compatible with file plugin', async () => {
     checks: [{ files: ['/a'], size: 1024 * 1024 }]
   }
   await time.step80(config, config.checks[0])
-  expect(getRunningTime).toHaveBeenCalledWith('/a')
+  expect(mockedGetRunningTime).toHaveBeenLastCalledWith('/a')
   expect(config.checks[0].runTime).toBe(10)
 })
 

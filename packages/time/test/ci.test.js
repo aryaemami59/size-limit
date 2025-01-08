@@ -3,17 +3,22 @@ import { afterAll, afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { getRunningTime } from '../get-running-time'
 
-vi.mock('estimo', () => ({
+vi.mock(import('estimo'), async importOriginal => ({
+  ...(await importOriginal()),
+
   default: () => {
     throw new Error('libX11-xcb.so.1')
   }
 }))
 
-vi.mock('../cache', () => ({
-  getCache() {
+vi.mock(import('../cache.js'), async importOriginal => ({
+  ...(await importOriginal()),
+
+  async getCache() {
     return false
   },
-  saveCache() {}
+
+  async saveCache() {}
 }))
 
 const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -4,8 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import calc from '../calc'
 import run from '../run'
 
-vi.mock('../create-reporter', () => {
+const mockedCalc = vi.mocked(calc)
+
+vi.mock(import('../create-reporter.js'), async importOriginal => {
   return {
+    ...(await importOriginal()),
+
     default: () => ({
       error(e) {
         throw e
@@ -14,7 +18,8 @@ vi.mock('../create-reporter', () => {
     })
   }
 })
-vi.mock('../calc')
+
+vi.mock(import('../calc.js'))
 
 function fixture(...files) {
   return path.join(__dirname, '..', '..', '..', 'fixtures', ...files)
@@ -33,11 +38,11 @@ async function check(cwd, args = []) {
     }
   }
   await run(process)
-  return vi.mocked(calc).mock.calls[0][1]
+  return mockedCalc.mock.calls[0][1]
 }
 
 beforeEach(() => {
-  vi.mocked(calc).mockReset()
+  mockedCalc.mockReset()
 })
 
 it('creates config by CLI arguments', async () => {

@@ -6,15 +6,20 @@ import { expect, it, vi } from 'vitest'
 
 import run from '../run.js'
 
-vi.mock('../../time/get-running-time', () => ({
-  getRunningTime: () => 1
+vi.mock(import('../../time/get-running-time.js'), async importOriginal => ({
+  ...(await importOriginal()),
+
+  getRunningTime: async () => 1
 }))
 
-vi.mock('../../time/cache', () => ({
-  getCache() {
+vi.mock(import('../../time/cache.js'), async importOriginal => ({
+  ...(await importOriginal()),
+
+  async getCache() {
     return false
   },
-  saveCache() {}
+
+  async saveCache() {}
 }))
 
 vi.mock('nanospinner', () => {
