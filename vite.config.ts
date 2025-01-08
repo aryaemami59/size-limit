@@ -19,7 +19,7 @@ export default defineConfig({
         'packages/preset-app/index.js'
       ]
     },
-    testTimeout: 20_000,
+    testTimeout: process.env.CI ? 50_000 : 20_000,
     retry: process.env.CI ? 1 : 0,
     fileParallelism: !process.env.CI
   },
