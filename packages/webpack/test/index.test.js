@@ -261,7 +261,7 @@ it('throws unsupported error --save-bundle', async () => {
     checks: [{ files: [fixture('cjs/small.js')] }],
     saveBundle: distFile
   }
-  await mkdir(DIST)
+  await mkdir(DIST, { recursive: true })
   await writeFile(distFile, '')
 
   let err
