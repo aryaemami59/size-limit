@@ -19,6 +19,9 @@ const MESSAGES = {
     'The *entry* in Size Limit config ' +
     'must be *a string* or *an array of strings*',
   missedPlugin: mod => `Add *@size-limit/${mod}* plugin to Size Limit`,
+  missingJiti: () =>
+    'TypeScript config files require *jiti* package. ' +
+    'Install it with *npm install --save-dev jiti* or *pnpm add -D jiti*',
   multiPluginlessConfig: (opt, mod1, mod2) =>
     `Config option *${opt}* needs *@size-limit/${mod1}* ` +
     `or *@size-limit/${mod2}* plugin`,

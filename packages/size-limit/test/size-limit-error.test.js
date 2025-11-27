@@ -57,3 +57,8 @@ it('has error for unknown entry', () => {
   let err = new SizeLimitError('unknownEntry', 'admin')
   expect(print(err)).toMatchSnapshot()
 })
+
+it('has error for missing jiti', () => {
+  let err = new SizeLimitError('missingJiti')
+  expect(print(err)).toMatchSnapshot()
+})

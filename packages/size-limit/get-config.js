@@ -97,9 +97,18 @@ const dynamicImport = async filePath =>
   (await import(pathToFileURL(filePath).href)).default
 
 const tsLoader = async filePath => {
-  let jiti = (await import('jiti')).createJiti(fileURLToPath(import.meta.url), {
-    interopDefault: false
-  })
+  let jiti
+  try {
+    jiti = (await import('jiti')).createJiti(fileURLToPath(import.meta.url), {
+      interopDefault: false
+    })
+    /* c8 ignore next 6 */
+  } catch (error) {
+    if (error.code === 'ERR_MODULE_NOT_FOUND') {
+      throw new SizeLimitError('missingJiti')
+    }
+    throw error
+  }
 
   let config = await jiti.import(filePath, { default: true })
 
