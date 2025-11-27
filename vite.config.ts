@@ -16,7 +16,8 @@ export default defineConfig({
         '**/scripts',
         '**/test',
         'packages/size-limit/bin.js',
-        'packages/preset-app/index.js'
+        'packages/preset-app/index.js',
+        'packages/webpack-why/index.js'
       ]
     },
     testTimeout: 20_000,
