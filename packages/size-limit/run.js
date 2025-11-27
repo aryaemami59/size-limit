@@ -1,4 +1,3 @@
-import chokidar from 'chokidar'
 import { createSpinner } from 'nanospinner'
 import { resolve } from 'node:path'
 
@@ -82,8 +81,17 @@ export default async process => {
 
     await calcAndShow()
 
-    /* c8 ignore next 6 */
+    /* c8 ignore next 15 */
     if (hasArg('--watch')) {
+      let chokidar
+      try {
+        chokidar = (await import('chokidar')).default
+      } catch (error) {
+        if (error.code === 'ERR_MODULE_NOT_FOUND') {
+          throw new SizeLimitError('missingPackage', 'chokidar', '--watch')
+        }
+        throw error
+      }
       let watcher = chokidar.watch(['**/*'], {
         ignored: '**/node_modules/**'
       })
