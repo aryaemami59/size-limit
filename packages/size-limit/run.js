@@ -1,4 +1,5 @@
 import { createSpinner } from 'nanospinner'
+import { watch } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 import calc from './calc.js'
@@ -81,21 +82,15 @@ export default async process => {
 
     await calcAndShow()
 
-    /* c8 ignore next 15 */
+    /* c8 ignore next 8 */
     if (hasArg('--watch')) {
-      let chokidar
-      try {
-        chokidar = (await import('chokidar')).default
-      } catch (error) {
-        if (error.code === 'ERR_MODULE_NOT_FOUND') {
-          throw new SizeLimitError('missingPackage', 'chokidar', '--watch')
+      let watcher = watch(process.cwd(), { recursive: true })
+      let throttledCalcAndShow = throttle(calcAndShow)
+      for await (let event of watcher) {
+        if (!event.filename.includes('node_modules')) {
+          throttledCalcAndShow()
         }
-        throw error
       }
-      let watcher = chokidar.watch(['**/*'], {
-        ignored: '**/node_modules/**'
-      })
-      watcher.on('change', throttle(calcAndShow))
     }
 
     if ((config.failed || config.missed) && !args.why) process.exit(1)

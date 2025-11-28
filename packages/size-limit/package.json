@@ -31,13 +31,9 @@
     "tinyglobby": "^0.2.15"
   },
   "peerDependencies": {
-    "chokidar": "^5.0.0",
     "jiti": "^2.0.0"
   },
   "peerDependenciesMeta": {
-    "chokidar": {
-      "optional": true
-    },
     "jiti": {
       "optional": true
     }
