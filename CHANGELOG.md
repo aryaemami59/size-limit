@@ -1,6 +1,13 @@
 # Change Log
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 12.0.0
+* Moved `jiti` to optional dependency.
+* Removed `chokidar` dependency in favor of `fs.watch`.
+* Removed Node.js 18 support.
+* Updated `open` & `esbuild` dependencies.
+* Fixed docs (by @nlopin & @just-boris).
+
 ## 11.2.0
 * Added `--config` argument (by @EvgenyWas).
 * Added top-level `await` support to config (by @aryaemami59).
