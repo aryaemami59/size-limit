@@ -82,7 +82,7 @@ export default async process => {
 
     await calcAndShow()
 
-    /* c8 ignore next 8 */
+    /* c8 ignore next 9 */
     if (hasArg('--watch')) {
       let watcher = watch(process.cwd(), { recursive: true })
       let throttledCalcAndShow = throttle(calcAndShow)
