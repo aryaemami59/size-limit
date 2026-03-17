@@ -2,45 +2,46 @@ import './force-colors.js'
 
 import { expect, it } from 'vitest'
 
-import createReporter from '../create-reporter'
-import { SizeLimitError } from '../size-limit-error'
+import createReporter from '../src/create-reporter.js'
+import { SizeLimitError } from '../src/size-limit-error.js'
 
-function print(err) {
+function print(err: Error): string {
   let stderr = ''
-  let process = {
+  const process = {
     stderr: {
-      write(str) {
+      write(str: string) {
         stderr += str
+        return true
       }
     }
-  }
-  let processor = createReporter(process, false)
+  } as unknown as NodeJS.Process
+  const processor = createReporter(process, false)
   processor.error(err)
   return stderr
 }
 
 it('has mark', () => {
-  let err = new SizeLimitError('noPackage')
+  const err = new SizeLimitError('noPackage')
   expect(err.name).toBe('SizeLimitError')
 })
 
 it('has start', () => {
-  let err = new SizeLimitError('noPackage')
-  expect(err.stack).toContain('size-limit-error.test.js')
+  const err = new SizeLimitError('noPackage')
+  expect(err.stack).toContain('size-limit-error.test.ts')
 })
 
 it('has message', () => {
-  let err = new SizeLimitError('noPackage')
+  const err = new SizeLimitError('noPackage')
   expect(err.message).toContain('Create npm package')
 })
 
 it('has error for unknown option', () => {
-  let err = new SizeLimitError('missedPlugin', 'webpack', 'file')
+  const err = new SizeLimitError('missedPlugin', 'webpack', 'file')
   expect(print(err)).toMatchSnapshot()
 })
 
 it('has error for CLI error', () => {
-  let err = new SizeLimitError(
+  const err = new SizeLimitError(
     'cmdError',
     'cli-tool',
     'Module not found\n  @ multi ./tmp/index.js index[0]'
@@ -49,16 +50,16 @@ it('has error for CLI error', () => {
 })
 
 it('has error for CLI error without output', () => {
-  let err = new SizeLimitError('cmdError', 'cli-tool')
+  const err = new SizeLimitError('cmdError', 'cli-tool')
   expect(print(err)).toMatchSnapshot()
 })
 
 it('has error for unknown entry', () => {
-  let err = new SizeLimitError('unknownEntry', 'admin')
+  const err = new SizeLimitError('unknownEntry', 'admin')
   expect(print(err)).toMatchSnapshot()
 })
 
 it('has error for missing jiti package', () => {
-  let err = new SizeLimitError('missingPackage', 'jiti', 'TypeScript config')
+  const err = new SizeLimitError('missingPackage', 'jiti', 'TypeScript config')
   expect(print(err)).toMatchSnapshot()
 })

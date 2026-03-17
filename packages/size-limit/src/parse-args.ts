@@ -1,9 +1,9 @@
 import { SizeLimitError } from './size-limit-error.js'
 
-export default function parseArgs(plugins, argv) {
-  let args = { files: [] }
+export default function parseArgs(plugins: any, argv: string[]): any {
+  const args: any = { files: [] }
   for (let i = 2; i < argv.length; i++) {
-    let arg = argv[i]
+    const arg = argv[i]
 
     if (arg === '--limit') {
       args.limit = argv[++i]
@@ -18,7 +18,7 @@ export default function parseArgs(plugins, argv) {
           'esbuild'
         )
       }
-      let nextArg = argv[++i]
+      const nextArg = argv[++i]
       if (!nextArg || nextArg.startsWith('--')) {
         throw new SizeLimitError('argWithoutParameter', 'save-bundle', 'DIR')
       }
@@ -58,13 +58,13 @@ export default function parseArgs(plugins, argv) {
       if (!args.why) {
         throw new SizeLimitError('argWithoutAnotherArg', 'compare-with', 'why')
       }
-      let nextArg = argv[++i]
+      const nextArg = argv[++i]
       if (!nextArg || nextArg.startsWith('--')) {
         throw new SizeLimitError('argWithoutParameter', 'compare-with', 'FILE')
       }
       args.compareWith = nextArg
     } else if (arg === '--config') {
-      let nextArg = argv[++i]
+      const nextArg = argv[++i]
       if (!nextArg || nextArg.startsWith('--')) {
         throw new SizeLimitError('argWithoutParameter', 'config', 'FILE')
       }
@@ -74,7 +74,7 @@ export default function parseArgs(plugins, argv) {
       args.watch = true
     } else if (arg === '--highlight-less') {
       args.highlightLess = true
-    } else if (arg[0] !== '-') {
+    } else if (!arg?.startsWith('-')) {
       args.files.push(arg)
     } else if (arg === '--silent') {
       args.isSilentMode = arg

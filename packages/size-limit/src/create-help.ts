@@ -2,12 +2,23 @@ import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 import pc from 'picocolors'
+
+type PackageInfo = {
+  path: string
+  packageJson: any
+}
+
+interface Plugins {
+  list: any[]
+  has: (name: string) => boolean
+}
+
 const require = createRequire(import.meta.url)
 
 const { bold: b, red, yellow: y } = pc
 const ownPackage = require('./package.json')
 
-function npmCommands(pkg) {
+function npmCommands(pkg: PackageInfo) {
   let add = 'npm install --save-dev '
   let rm = 'npm remove '
   if (existsSync(join(pkg.path, '..', 'yarn.lock'))) {
@@ -20,15 +31,15 @@ function npmCommands(pkg) {
   return { add, rm }
 }
 
-export default process => {
-  function print(...lines) {
-    process.stdout.write(lines.join('\n') + '\n')
+export default (process: NodeJS.Process) => {
+  function print(...lines: string[]) {
+    process.stdout.write(`${lines.join('\n')}\n`)
   }
-  function printError(...lines) {
-    process.stderr.write(lines.join('\n') + '\n')
+  function printError(...lines: string[]) {
+    process.stderr.write(`${lines.join('\n')}\n`)
   }
 
-  function showHelp(plugins) {
+  function showHelp(plugins: Plugins) {
     print(
       y('size-limit [OPTION]… [FILE]…'),
       'Check the real performance cost of your front-end project to users',
@@ -42,7 +53,9 @@ export default process => {
       `  ${y('--watch')}           Runs in watch mode`,
       `  ${y('--silent')}          Show only failed limits`,
       `  ${y('--debug')}           Show internal configs for issue report`,
-      `  ${y('--save-bundle DIR')} Write output bundle to disk for manual review`,
+      `  ${y(
+        '--save-bundle DIR'
+      )} Write output bundle to disk for manual review`,
       `  ${y('--version')}         Display version`
     )
     if (plugins.has('webpack')) {
@@ -59,7 +72,7 @@ export default process => {
     print(
       '',
       b('Examples:'),
-      '  ' + y('size-limit'),
+      `  ${y('size-limit')}`,
       `    Read configuration from ${b('package.json')} or ` +
         `${b('.size-limit.json')} and check limit`,
       y('  size-limit index.js')
@@ -67,7 +80,7 @@ export default process => {
     if (plugins.has('webpack')) {
       print(
         '    Show the size of specific files with all file dependencies',
-        '  ' + y('size-limit --why'),
+        `  ${y('size-limit --why')}`,
         '    Show reasons why project have this size'
       )
     } else {
@@ -79,28 +92,28 @@ export default process => {
     print(`size-limit ${ownPackage.version}`)
   }
 
-  function showMigrationGuide(pkg) {
+  function showMigrationGuide(pkg: PackageInfo) {
     let { add } = npmCommands(pkg)
     printError(
       red('Install Size Limit preset depends on type of the project'),
       '',
       'For application, where you send JS bundle directly to users',
-      '  ' + y(add + '@size-limit/preset-app'),
+      `  ${y(`${add}@size-limit/preset-app`)}`,
       '',
       'For frameworks, components and big libraries',
-      '  ' + y(add + '@size-limit/preset-big-lib'),
+      `  ${y(`${add}@size-limit/preset-big-lib`)}`,
       '',
       'For small (< 10 kB) libraries',
-      '  ' + y(add + '@size-limit/preset-small-lib'),
+      `  ${y(`${add}@size-limit/preset-small-lib`)}`,
       '',
       'Check out docs for more complicated cases',
-      '  ' + y('https://github.com/ai/size-limit/')
+      `  ${y('https://github.com/ai/size-limit/')}`
     )
-    let devDependencies = pkg.packageJson.devDependencies
+    const { devDependencies } = pkg.packageJson
     if (devDependencies && !devDependencies['size-limit']) {
       printError(
         '',
-        `You need to add size-limit dependency: ${y(add + 'size-limit')}`
+        `You need to add size-limit dependency: ${y(`${add}size-limit`)}`
       )
     }
   }

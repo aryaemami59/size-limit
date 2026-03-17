@@ -1,9 +1,10 @@
-import './force-colors.js'
+import './force-colors.mjs'
 
 import { join } from 'node:path'
+import nodeProcess from 'node:process'
 import { expect, it, vi } from 'vitest'
 
-import run from '../run.js'
+import run from '../src/run.js'
 
 vi.mock('../../time/get-running-time', () => ({
   getRunningTime: () => 1
@@ -16,61 +17,60 @@ vi.mock('../../time/cache', () => ({
   saveCache() {}
 }))
 
-vi.mock('nanospinner', () => {
-  return {
-    createSpinner() {
-      return {
-        error() {},
-        start() {
-          return this
-        },
-        success() {}
-      }
+vi.mock('nanospinner', () => ({
+  createSpinner() {
+    return {
+      error() {},
+      start() {
+        return this
+      },
+      success() {}
     }
   }
-})
+}))
 
 const TMP_DIR = /size-limit-[\w-]+\/?/g
 const ROOT = join(__dirname, '..', '..', '..')
 const NODE_VERSION = parseInt(process.version.slice(1))
 
-function fixture(...files) {
+function fixture(...files: string[]): string {
   return join(ROOT, 'fixtures', ...files)
 }
 
-function createProcess(cwd, args = []) {
-  let history = {
+function createProcess(cwd: string | string[], args: string[] = []): readonly [NodeJS.Process, { exitCode: number; stderr: string; stdout: string }] {
+  const history = {
     exitCode: 0,
     stderr: '',
     stdout: ''
   }
-  let process = {
+  const process = {
+    ...nodeProcess,
     argv: ['node', 'size-limit', ...args],
     cwd() {
-      if (cwd.includes('/')) {
+      if (typeof cwd === 'string' && cwd.includes('/')) {
         return cwd
       } else {
         return fixture(...(Array.isArray(cwd) ? cwd : [cwd]))
       }
     },
-    exit(code) {
+    exit(code: number) {
       history.exitCode = code
     },
     stderr: {
-      write(str) {
+      write(str: string) {
         history.stderr += str.split(ROOT).join('').replace(TMP_DIR, '')
       }
     },
     stdout: {
-      write(str) {
+      write(str: string) {
         history.stdout += str.split(ROOT).join('').replace(TMP_DIR, '')
       }
     }
-  }
-  return [process, history]
+  } as NodeJS.Process
+  return [process, history] as const
 }
 
-function clean(output) {
+function clean(output: string): string {
   return output
     .replace(/\d+\.\d+\.\d+/g, '0.0.0')
     .replace(/var\/folders\/(.*)\//g, 'tmp/')
@@ -78,30 +78,30 @@ function clean(output) {
     .replace(/"webpackOutput": "[^"]+"/, '"webpackOutput": "/tmp/"')
 }
 
-async function check(cwd, args) {
-  let [process, history] = createProcess(cwd, args)
+async function check(cwd: string | string[], args?: string[]): Promise<string> {
+  const [process, history] = createProcess(cwd, args)
   await run(process)
   expect(history.stderr).toBe('')
   expect(history.exitCode).toBe(0)
   return history.stdout
 }
 
-async function error(cwd, args) {
-  let [process, history] = createProcess(cwd, args)
+async function error(cwd: string | string[], args?: string[]): Promise<string> {
+  const [process, history] = createProcess(cwd, args)
   await run(process)
   expect(history.stdout).toBe('')
   expect(history.exitCode).toBe(1)
   return history.stderr
 }
 
-async function checkJson(cwd, json) {
+async function checkJson(cwd: string | string[], json: unknown): Promise<void> {
   expect(clean(await check(cwd, ['--json']))).toEqual(
-    JSON.stringify(json, null, '  ') + '\n'
+    `${JSON.stringify(json, null, '  ')}\n`
   )
 }
 
 it('shows version', async () => {
-  let out = await check('file', ['--version'])
+  const out = await check('file', ['--version'])
   expect(out).toMatch(/^size-limit \d+.\d+.\d+\n$/m)
 })
 
@@ -122,7 +122,7 @@ it('shows error on missed package.json', async () => {
 })
 
 it('shows syntax errors in package.json', async () => {
-  let stderr = await error('package-syntax')
+  const stderr = await error('package-syntax')
   expect(stderr).toContain('ERROR')
   expect(stderr).toContain('SyntaxError')
 })
@@ -132,7 +132,7 @@ it('shows error in JSON format', async () => {
   await run(process)
   expect(history.exitCode).toBe(1)
   expect(history.stderr).toBe('')
-  let output = JSON.parse(history.stdout)
+  const output = JSON.parse(history.stdout)
   expect(Object.keys(output)).toEqual(['error'])
   expect(output.error).toContain('SizeLimitError: Size Limit didn’t find')
 })

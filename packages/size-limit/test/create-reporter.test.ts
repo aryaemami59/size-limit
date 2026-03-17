@@ -2,23 +2,34 @@ import './force-colors.js'
 
 import { expect, it } from 'vitest'
 
-import createReporter from '../create-reporter'
+import createReporter from '../src/create-reporter.js'
+import type { Plugins } from '../src/load-plugins.js'
 
-function results(types, config, isJSON = false, isSilentMode = false) {
+function results(
+  types: string[],
+  config: any,
+  isJSON = false,
+  isSilentMode = false
+): string {
   let stdout = ''
-  let plugins = {
+  const plugins = {
+    ...globalThis.process,
     has(type) {
       return types.includes(type)
-    }
-  }
-  let process = {
+    },
+    isEmpty: true,
+
+    list: []
+  } as const satisfies (typeof Plugins)['prototype']
+  const process = {
     stdout: {
-      write(str) {
+      write(str: string) {
         stdout += str
+        return true
       }
     }
-  }
-  let reporter = createReporter(process, isJSON, isSilentMode)
+  } as NodeJS.Process
+  const reporter = createReporter(process, isJSON, isSilentMode)
   reporter.results(plugins, config)
   return stdout
 }
@@ -40,8 +51,8 @@ it('renders results', () => {
           name: 'size',
           passed: true,
           runTime: 2,
-          size: 102400,
-          sizeLimit: 102400,
+          size: 102_400,
+          sizeLimit: 102_400,
           totalTime: 3
         },
         {
@@ -50,7 +61,7 @@ it('renders results', () => {
           name: 'time',
           passed: true,
           runTime: 2,
-          size: 102400,
+          size: 102_400,
           timeLimit: 4,
           totalTime: 3
         }
@@ -78,8 +89,8 @@ it('renders list of success checks in silent mode', () => {
             name: 'size',
             passed: true,
             runTime: 2,
-            size: 102400,
-            sizeLimit: 102400,
+            size: 102_400,
+            sizeLimit: 102_400,
             totalTime: 3
           }
         ]
@@ -99,14 +110,14 @@ it('renders list of failed checks in silent mode', () => {
           {
             name: 'small fail',
             passed: false,
-            size: 102401,
-            sizeLimit: 102400
+            size: 102_401,
+            sizeLimit: 102_400
           },
           {
             name: 'big fail',
             passed: false,
-            size: 102500,
-            sizeLimit: 102400
+            size: 102_500,
+            sizeLimit: 102_400
           }
         ]
       },
@@ -125,8 +136,8 @@ it('renders list of failed and success checks in silent mode', () => {
           {
             name: 'small fail',
             passed: false,
-            size: 102401,
-            sizeLimit: 102400
+            size: 102_401,
+            sizeLimit: 102_400
           },
           {
             config: 'a',
@@ -141,15 +152,15 @@ it('renders list of failed and success checks in silent mode', () => {
             name: 'size',
             passed: true,
             runTime: 2,
-            size: 102400,
-            sizeLimit: 102400,
+            size: 102_400,
+            sizeLimit: 102_400,
             totalTime: 3
           },
           {
             name: 'big fail',
             passed: false,
-            size: 102500,
-            sizeLimit: 102400
+            size: 102_500,
+            sizeLimit: 102_400
           }
         ]
       },
@@ -166,20 +177,20 @@ it('renders failed results', () => {
         {
           name: 'ok',
           passed: true,
-          size: 102400,
-          sizeLimit: 102400
+          size: 102_400,
+          sizeLimit: 102_400
         },
         {
           name: 'small fail',
           passed: false,
-          size: 102401,
-          sizeLimit: 102400
+          size: 102_401,
+          sizeLimit: 102_400
         },
         {
           name: 'big fail',
           passed: false,
-          size: 102500,
-          sizeLimit: 102400
+          size: 102_500,
+          sizeLimit: 102_400
         }
       ],
       configPath: 'package.json',

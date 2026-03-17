@@ -1,4 +1,4 @@
-import loguxConfig from '@logux/eslint-config'
+import loguxConfig from '@logux/eslint-config/ts'
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -10,11 +10,13 @@ export default [
     rules: {
       'n/global-require': 'off',
       'no-console': 'off',
-      'no-control-regex': 'off'
+      'no-control-regex': 'off',
+      'prefer-let/prefer-let': 'off'
     }
   },
   {
     files: ['**/*.test.js'],
+
     rules: {
       'n/no-extraneous-require': 'off'
     }

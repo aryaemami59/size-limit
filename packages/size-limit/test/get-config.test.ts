@@ -1,43 +1,44 @@
 import { dirname, join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import calc from '../calc'
-import run from '../run'
+import calc from '../src/calc.js'
+import run from '../src/run.js'
 
-vi.mock('../create-reporter', () => {
-  return {
-    default: () => ({
-      error(e) {
-        throw e
-      },
-      results() {}
-    })
-  }
-})
-vi.mock('../calc')
+vi.mock(import('../src/create-reporter.js'), () => ({
+  default: () => ({
+    error(e) {
+      throw e
+    },
+    results() {}
+  })
+}))
+vi.mock('../src/calc.js')
 
-function fixture(...files) {
+const calcMock = vi.mocked(calc)
+
+function fixture(...files: string[]): string {
   return join(__dirname, '..', '..', '..', 'fixtures', ...files)
 }
 
-async function check(cwd, args = []) {
-  let process = {
+async function check(cwd: string, args: string[] = []): Promise<any> {
+  const process = {
     argv: ['node', 'size-limit', ...args],
     cwd() {
       return fixture(cwd)
     },
-    exit(code) {
+    exit(code: number): never {
       if (code !== 0) {
-        throw new Error('Exit code ', code)
+        throw new Error(`Exit code ${code}`)
       }
+      throw new Error('Exit called')
     }
-  }
+  } as unknown as { argv: string[] } & NodeJS.Process
   await run(process)
-  return calc.mock.calls[0][1]
+  return calcMock.mock.calls[0]![1]
 }
 
 beforeEach(() => {
-  calc.mockReset()
+  calcMock.mockReset()
 })
 
 it('creates config by CLI arguments', async () => {
@@ -96,7 +97,7 @@ it('overrides limit by CLI arg', async () => {
         files: [fixture('simple', 'index.js')],
         limit: '10 kB',
         name: 'index',
-        sizeLimit: 10000
+        sizeLimit: 10_000
       }
     ],
     configPath: 'package.json',
@@ -105,7 +106,7 @@ it('overrides limit by CLI arg', async () => {
 })
 
 it('normalizes bundle and webpack arguments', async () => {
-  let args = [
+  const args = [
     '--why',
     '--save-bundle',
     'out',
@@ -134,7 +135,7 @@ it('normalizes bundle and webpack arguments', async () => {
 })
 
 it('normalizes bundle and webpack arguments with --why and compare-with', async () => {
-  let args = [
+  const args = [
     '--why',
     '--save-bundle',
     'out',
@@ -166,7 +167,8 @@ it('normalizes bundle and webpack arguments with --why and compare-with', async 
 })
 
 it('normalizes bundle and webpack arguments with --why and ui-reports', async () => {
-  let args = [
+  const uiReports = await import(fixture('ui-reports', 'reports.js'))
+  const args = [
     '--why',
     '--save-bundle',
     'out',
@@ -181,7 +183,7 @@ it('normalizes bundle and webpack arguments with --why and ui-reports', async ()
         entry: ['a'],
         highlightLess: true,
         name: 'a',
-        uiReports: require(fixture('ui-reports', 'reports.js'))
+        uiReports: uiReports.default
       }
     ],
     cleanDir: true,
@@ -430,7 +432,7 @@ it('normalizes import', async () => {
 })
 
 it('normalizes networkSpeed option for time plugin', async () => {
-  let cwd = 'time-network-speed'
+  const cwd = 'time-network-speed'
   expect(await check(cwd)).toEqual({
     checks: [
       {
@@ -451,7 +453,7 @@ it('normalizes networkSpeed option for time plugin', async () => {
 })
 
 it('normalizes latency option for time plugin', async () => {
-  let cwd = 'time-latency'
+  const cwd = 'time-latency'
   expect(await check(cwd)).toEqual({
     checks: [
       {
@@ -470,10 +472,10 @@ it('normalizes latency option for time plugin', async () => {
     cwd: fixture(cwd)
   })
 })
-    
+
 it('takes config from CLI config argument', async () => {
-  let cwd = 'config-file-from-arg'
-  let configPath = 'src/configs/my-size-limit.config.js'
+  const cwd = 'config-file-from-arg'
+  const configPath = 'src/configs/my-size-limit.config.js'
   expect(await check(cwd, ['--config', fixture(cwd, configPath)])).toEqual({
     checks: [
       {

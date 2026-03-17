@@ -2,8 +2,8 @@ import { nanoid } from 'nanoid/non-secure'
 import { readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { SizeLimitError } from 'size-limit'
 
+import { SizeLimitError } from '../size-limit/src/index.js'
 import { convertConfig } from './convert-config.js'
 import { getConfig } from './get-config.js'
 import { runWebpack } from './run-webpack.js'
@@ -15,7 +15,12 @@ const WEBPACK_EMPTY_PROJECT_IMPORT = 37
 const WEBPACK_EMPTY_PROJECT_IMPORT_GZIP = 57
 const WEBPACK_EMPTY_PROJECT_IMPORT_BROTLI = 41
 
+/**
+ * @param {any} stats
+ * @param {any} check
+ */
 function getFiles(stats, check) {
+  /** @type {any} */
   let entries = {}
   if (check.entry) {
     for (let i of check.entry) {
@@ -40,22 +45,32 @@ function getFiles(stats, check) {
     })
 }
 
+/**
+ * @param {string} dir
+ */
 async function isDirNotEmpty(dir) {
   try {
     let files = await readdir(dir)
     return !!files.length
   } catch (e) {
+    // @ts-expect-error - catching any error
     if (e.code === 'ENOENT') return false
     throw e
   }
 }
 
+/**
+ * @param {any} config
+ */
 async function loadConfig(config) {
   return typeof config === 'function' ? config() : config
 }
 
 export default [
   {
+    /**
+     * @param {any} config
+     */
     async before(config) {
       if (config.saveBundle) {
         if (config.cleanDir) {
@@ -69,6 +84,10 @@ export default [
       }
     },
 
+    /**
+     * @param {any} config
+     * @param {any} check
+     */
     async finally(config, check) {
       if (check.webpackOutput && !config.saveBundle) {
         await rm(check.webpackOutput, { force: true, recursive: true })
@@ -77,6 +96,10 @@ export default [
 
     name: '@size-limit/webpack',
 
+    /**
+     * @param {any} config
+     * @param {any} check
+     */
     async step20(config, check) {
       if (check.webpack === false) return
       check.webpackOutput = config.saveBundle
@@ -98,12 +121,20 @@ export default [
         }
       }
     },
+    /**
+     * @param {any} config
+     * @param {any} check
+     */
     async step40(config, check) {
       if (check.webpackConfig && check.webpack !== false) {
         check.bundles = getFiles(await runWebpack(check), check)
       }
     },
 
+    /**
+     * @param {any} config
+     * @param {any} check
+     */
     async step61(config, check) {
       if (check.bundles) {
         if (typeof check.size === 'undefined') {

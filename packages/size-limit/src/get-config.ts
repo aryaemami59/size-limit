@@ -9,7 +9,7 @@ import { SizeLimitError } from './size-limit-error.js'
 
 const require = createRequire(import.meta.url)
 
-let OPTIONS = {
+const OPTIONS = {
   brotli: 'file',
   compareWith: 'webpack',
   config: ['webpack', 'esbuild'],
@@ -33,32 +33,32 @@ let OPTIONS = {
   webpack: 'webpack'
 }
 
-function isStrings(value) {
+function isStrings(value: any): boolean {
   if (!Array.isArray(value)) return false
-  return value.every(i => typeof i === 'string')
+  return value.every((i: any) => typeof i === 'string')
 }
 
-function isStringsOrUndefined(value) {
-  let type = typeof value
+function isStringsOrUndefined(value: any): boolean {
+  const type = typeof value
   return type === 'undefined' || type === 'string' || isStrings(value)
 }
 
-function endsWithMs(value) {
+function endsWithMs(value: any): boolean {
   return / ?ms/i.test(value)
 }
 
-function endsWithS(value) {
+function endsWithS(value: any): boolean {
   return / ?s/i.test(value)
 }
 
-function checkChecks(plugins, checks) {
+function checkChecks(plugins: any, checks: any): void {
   if (!Array.isArray(checks)) {
     throw new SizeLimitError('noArrayConfig')
   }
   if (checks.length === 0) {
     throw new SizeLimitError('emptyConfig')
   }
-  for (let check of checks) {
+  for (const check of checks) {
     if (typeof check !== 'object') {
       throw new SizeLimitError('noObjectCheck')
     }
@@ -68,8 +68,8 @@ function checkChecks(plugins, checks) {
     if (!isStringsOrUndefined(check.entry)) {
       throw new SizeLimitError('entryNotString')
     }
-    for (let opt in check) {
-      let available = OPTIONS[opt]
+    for (const opt in check) {
+      const available = OPTIONS[opt as keyof typeof OPTIONS]
       if (typeof available === 'string') {
         if (!plugins.has(available)) {
           throw new SizeLimitError('pluginlessConfig', opt, available)
@@ -85,38 +85,45 @@ function checkChecks(plugins, checks) {
   }
 }
 
-function toAbsolute(file, cwd) {
+function toAbsolute(file: string, cwd: string): string {
   return isAbsolute(file) ? file : join(cwd, file)
 }
 
-function toName(files, cwd) {
-  return files.map(i => (i.startsWith(cwd) ? relative(cwd, i) : i)).join(', ')
+function toName(files: string[], cwd: string): string {
+  return files
+    .map((i: string) => (i.startsWith(cwd) ? relative(cwd, i) : i))
+    .join(', ')
 }
 
-const dynamicImport = async filePath =>
+const dynamicImport = async (filePath: string): Promise<any> =>
   (await import(pathToFileURL(filePath).href)).default
 
-const tsLoader = async filePath => {
-  let jiti
+const tsLoader = async (filePath: string): Promise<any> => {
+  let jiti: any
   try {
     jiti = (await import('jiti')).createJiti(fileURLToPath(import.meta.url), {
       interopDefault: false
     })
     /* c8 ignore next 6 */
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'ERR_MODULE_NOT_FOUND') {
       throw new SizeLimitError('missingPackage', 'jiti', 'TypeScript config')
     }
     throw error
   }
 
-  let config = await jiti.import(filePath, { default: true })
+  const config = await jiti.import(filePath, { default: true })
 
   return config
 }
 
-export default async function getConfig(plugins, process, args, pkg) {
-  let config = {
+export default async function getConfig(
+  plugins: any,
+  process: any,
+  args: any,
+  pkg: any
+): Promise<any> {
+  const config: any = {
     cwd: process.cwd()
   }
   if (args.why) {
@@ -144,7 +151,7 @@ export default async function getConfig(plugins, process, args, pkg) {
   if (args.files.length > 0) {
     config.checks = [{ files: args.files }]
   } else {
-    let explorer = lilconfig('size-limit', {
+    const explorer = lilconfig('size-limit', {
       loaders: {
         '.cjs': dynamicImport,
         '.cts': tsLoader,
@@ -165,9 +172,11 @@ export default async function getConfig(plugins, process, args, pkg) {
         '.size-limit.cts'
       ]
     })
-    let result = args.config?.trim()
+    const result = args.config?.trim()
       ? await explorer.load(resolve(args.config.trim()))
       : await explorer.search(process.cwd())
+
+    // console.dir(result, {depth: null})
 
     if (result === null) throw new SizeLimitError('noConfig')
     checkChecks(plugins, result.config)
@@ -175,27 +184,35 @@ export default async function getConfig(plugins, process, args, pkg) {
     config.configPath = relative(process.cwd(), result.filepath)
     config.cwd = dirname(result.filepath)
     config.checks = await Promise.all(
-      result.config.map(async check => {
-        let processed = { ...check }
-        if (check.path) {
-          let patterns = Array.isArray(check.path) ? check.path : [check.path]
-          processed.files = await glob(patterns, { cwd: config.cwd })
-        } else if (!check.entry) {
-          if (pkg.packageJson.main) {
-            processed.files = [
-              require.resolve(join(dirname(pkg.path), pkg.packageJson.main))
-            ]
-          } else {
-            processed.files = [join(dirname(pkg.path), 'index.js')]
+      result.config.map(
+        async (check: {
+          path: string | string[]
+          entry: string | string[]
+          files: string | string[]
+        }) => {
+          const processed = { ...check }
+          if (check.path) {
+            const patterns = Array.isArray(check.path)
+              ? check.path
+              : [check.path]
+            processed.files = await glob(patterns, { cwd: config.cwd })
+          } else if (!check.entry) {
+            if (pkg.packageJson.main) {
+              processed.files = [
+                require.resolve(join(dirname(pkg.path), pkg.packageJson.main))
+              ]
+            } else {
+              processed.files = [join(dirname(pkg.path), 'index.js')]
+            }
           }
+          return processed
         }
-        return processed
-      })
+      )
     )
   }
 
-  let peer = Object.keys(pkg.packageJson.peerDependencies || {})
-  for (let check of config.checks) {
+  const peer = Object.keys(pkg.packageJson.peerDependencies || {})
+  for (const check of config.checks) {
     if (peer.length > 0) check.ignore = peer.concat(check.ignore || [])
     if (check.entry && !Array.isArray(check.entry)) check.entry = [check.entry]
     if (!check.name) check.name = toName(check.entry || check.files, config.cwd)
@@ -212,10 +229,12 @@ export default async function getConfig(plugins, process, args, pkg) {
         throw new SizeLimitError('timeWithoutPlugin')
       }
     }
+
+    // console.dir(config, {depth: null})
     if (config.highlightLess) check.highlightLess = true
     if (/\sB$|\dB$/.test(check.limit)) check.highlightLess = true
     if (check.files) {
-      check.files = check.files.map(i => toAbsolute(i, config.cwd))
+      check.files = check.files.map((i: string) => toAbsolute(i, config.cwd))
     }
     if (check.config) check.config = toAbsolute(check.config, config.cwd)
     if (typeof check.import === 'string') {
@@ -224,10 +243,10 @@ export default async function getConfig(plugins, process, args, pkg) {
       }
     }
     if (check.import) {
-      let imports = {}
-      for (let i in check.import) {
+      const imports: any = {}
+      for (const i in check.import) {
         if (peer.includes(i)) {
-          check.ignore = check.ignore.filter(j => j !== i)
+          check.ignore = check.ignore.filter((j: string) => j !== i)
           imports[require.resolve(i, config.cwd)] = check.import[i]
         } else {
           imports[toAbsolute(i, config.cwd)] = check.import[i]
@@ -249,6 +268,8 @@ export default async function getConfig(plugins, process, args, pkg) {
       }
     }
   }
+
+  // console.dir(config, { depth: null })
 
   return config
 }

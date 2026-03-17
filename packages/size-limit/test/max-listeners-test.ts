@@ -5,7 +5,7 @@ import run from '../src/run.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-process.args = ['node', 'size-limit']
+process.argv = ['node', 'size-limit']
 process.cwd = () =>
   join(__dirname, '..', '..', '..', 'fixtures', 'max-listeners')
 
